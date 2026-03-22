@@ -1,0 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-dm: "DM Sans", sans-serif;
+  --font-syne: "Syne", sans-serif;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.65s ease both;
+  --animate-fade-up-1: fade-up 0.65s 0.1s ease both;
+  --animate-fade-up-2: fade-up 0.65s 0.22s ease both;
+  --animate-fade-up-3: fade-up 0.65s 0.36s ease both;
+  --animate-fade-up-4: fade-up 0.65s 0.5s ease both;
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.4;
+      transform: scale(0.75);
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility bg-grid-lines {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 68px 68px;
+}
+
