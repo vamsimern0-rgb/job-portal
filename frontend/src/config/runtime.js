@@ -1,6 +1,16 @@
 const getWindowOrigin = () =>
   typeof window !== "undefined" ? window.location.origin : "";
 
+const warnMissingRuntimeUrl = (key, fallback) => {
+  if (typeof window === "undefined") return;
+  if (isLocalHost()) return;
+
+  console.warn(
+    `[runtime] Missing ${key}. Falling back to ${fallback}. ` +
+      "Set your Vercel environment variables to your deployed backend URL."
+  );
+};
+
 const isLocalHost = () => {
   if (typeof window === "undefined") return false;
 
@@ -15,7 +25,9 @@ export const getApiBaseUrl = () => {
     return "http://localhost:5000/api";
   }
 
-  return `${getWindowOrigin()}/api`;
+  const fallback = `${getWindowOrigin()}/api`;
+  warnMissingRuntimeUrl("VITE_API_BASE_URL", fallback);
+  return fallback;
 };
 
 export const getSocketUrl = () => {
@@ -26,7 +38,9 @@ export const getSocketUrl = () => {
     return "http://localhost:5000";
   }
 
-  return getWindowOrigin();
+  const fallback = getWindowOrigin();
+  warnMissingRuntimeUrl("VITE_SOCKET_URL", fallback);
+  return fallback;
 };
 
 export const getAssetBaseUrl = () => {
@@ -37,5 +51,7 @@ export const getAssetBaseUrl = () => {
     return "http://localhost:5000/";
   }
 
-  return `${getWindowOrigin()}/`;
+  const fallback = `${getWindowOrigin()}/`;
+  warnMissingRuntimeUrl("VITE_ASSET_BASE_URL", fallback);
+  return fallback;
 };
