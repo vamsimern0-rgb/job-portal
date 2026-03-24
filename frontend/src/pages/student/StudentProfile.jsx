@@ -15,9 +15,9 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { useToast } from "../../components/ui/ToastProvider";
+import { getAssetBaseUrl } from "../../config/runtime";
 
-const API_ASSET_BASE =
-  import.meta.env.VITE_ASSET_BASE_URL || "http://localhost:5000/";
+const API_ASSET_BASE = getAssetBaseUrl();
 
 const normalizeString = (value = "") => String(value ?? "").trim();
 

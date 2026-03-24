@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Bell, LogOut, Menu, X, Zap } from "lucide-react";
 import api from "../../api/axios";
 import socket from "../../socket";
+import { getAssetBaseUrl } from "../../config/runtime";
 
-const ASSET_BASE_URL =
-  import.meta.env.VITE_ASSET_BASE_URL || "http://localhost:5000/";
+const ASSET_BASE_URL = getAssetBaseUrl();
 
 const toAssetUrl = (value = "") =>
   `${ASSET_BASE_URL.replace(/\/+$/, "")}/${String(value || "").replace(/^\/+/, "")}`;

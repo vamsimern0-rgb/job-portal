@@ -2,9 +2,9 @@ import { createElement, useCallback, useEffect, useState } from "react";
 import { Building2, Mail, Phone, MapPin, Globe, Users, Lock, Edit2, Check, X } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../components/ui/ToastProvider";
+import { getAssetBaseUrl } from "../../config/runtime";
 
-const ASSET_BASE_URL =
-  import.meta.env.VITE_ASSET_BASE_URL || "http://localhost:5000/";
+const ASSET_BASE_URL = getAssetBaseUrl();
 
 const toAssetUrl = (value = "") =>
   `${ASSET_BASE_URL.replace(/\/+$/, "")}/${String(value || "").replace(/^\/+/, "")}`;

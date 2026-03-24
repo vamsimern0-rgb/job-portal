@@ -20,8 +20,59 @@ import interviewReminderScheduler from "./services/interviewReminderScheduler.js
 import Hr from "./models/Hr.js";
 import Student from "./models/Student.js";
 
+const DEFAULT_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5174"];
 
+const parseAllowedOrigins = () => {
+  const rawOrigins = [
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+    process.env.CORS_ORIGINS
+  ]
+    .filter(Boolean)
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim())
+    .filter(Boolean);
 
+  const configuredOrigins = rawOrigins.length > 0 ? rawOrigins : DEFAULT_DEV_ORIGINS;
+
+  return configuredOrigins.map((origin) => {
+    if (origin.includes("*")) {
+      const escapedOrigin = origin
+        .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*/g, ".*");
+
+      return new RegExp(`^${escapedOrigin}$`);
+    }
+
+    return origin;
+  });
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+
+  return allowedOrigins.some((allowedOrigin) => {
+    if (allowedOrigin instanceof RegExp) {
+      return allowedOrigin.test(origin);
+    }
+
+    return allowedOrigin === origin;
+  });
+};
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (isOriginAllowed(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true
+};
 
 
 const app = express();
@@ -30,11 +81,7 @@ const server = http.createServer(app);
 /* ================= SOCKET.IO ================= */
 
 export const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-  }
+  cors: corsOptions
 });
 app.set("io", io);
 
@@ -71,10 +118,7 @@ io.use(async (socket, next) => {
 
 // ✅ FIXED CORS HERE
 app.use(
-  cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
-    credentials: true
-  })
+  cors(corsOptions)
 );
 
 app.use(express.json());
