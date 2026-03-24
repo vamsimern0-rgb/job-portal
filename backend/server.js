@@ -20,7 +20,11 @@ import interviewReminderScheduler from "./services/interviewReminderScheduler.js
 import Hr from "./models/Hr.js";
 import Student from "./models/Student.js";
 
-const DEFAULT_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5174"];
+const DEFAULT_DEV_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://*.vercel.app"
+];
 
 const parseAllowedOrigins = () => {
   const rawOrigins = [
