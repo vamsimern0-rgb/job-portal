@@ -20,12 +20,10 @@ import api from "../../api/axios";
 import socket from "../../socket";
 import { useToast } from "../../components/ui/ToastProvider";
 import { canMutateCandidates, getStoredHrRole } from "../../utils/hrPermissions";
+import { getAssetBaseUrl } from "../../config/runtime";
+import { toAssetUrl } from "../../utils/assets";
 
-const ASSET_BASE_URL =
-  import.meta.env.VITE_ASSET_BASE_URL || "http://localhost:5000/";
-
-const toAssetUrl = (value = "") =>
-  `${ASSET_BASE_URL.replace(/\/+$/, "")}/${String(value || "").replace(/^\/+/, "")}`;
+const ASSET_BASE_URL = getAssetBaseUrl();
 
 const scoreBadgeStyles = {
   excellent: "from-emerald-600 to-teal-700 text-emerald-50",
@@ -500,7 +498,7 @@ export default function ATSResults() {
 
                               {candidate.resumeUrl && (
                                 <a
-                                  href={toAssetUrl(candidate.resumeUrl)}
+                                  href={toAssetUrl(ASSET_BASE_URL, candidate.resumeUrl)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium text-xs transition-all"

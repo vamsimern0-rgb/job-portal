@@ -1,6 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, X, Zap } from "lucide-react";
+import { Bell, Menu, X, Zap } from "lucide-react";
 import api from "../../api/axios";
 import socket from "../../socket";
 import { useToast } from "../../components/ui/ToastProvider";
@@ -8,12 +8,14 @@ import { useToast } from "../../components/ui/ToastProvider";
 export default function StudentNavbar() {
   const toast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [openNotifications, setOpenNotifications] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [studentId, setStudentId] = useState("");
-  const dropdownRef = useRef(null);
+  const desktopDropdownRef = useRef(null);
+  const mobileDropdownRef = useRef(null);
 
   const token = localStorage.getItem("studentToken");
 
@@ -67,7 +69,10 @@ export default function StudentNavbar() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const clickedInsideDesktop = desktopDropdownRef.current?.contains(event.target);
+      const clickedInsideMobile = mobileDropdownRef.current?.contains(event.target);
+
+      if (!clickedInsideDesktop && !clickedInsideMobile) {
         setOpenNotifications(false);
       }
     };
@@ -76,13 +81,36 @@ export default function StudentNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    setMobileOpen(false);
+    setOpenNotifications(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileOpen(false);
+      }
+    };
+
+    const handleScroll = () => {
+      setMobileOpen(false);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   const markAsRead = async (id) => {
     try {
       await api.put(`/student/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((item) =>
-          item._id === id ? { ...item, read: true } : item
-        )
+        prev.map((item) => (item._id === id ? { ...item, read: true } : item))
       );
     } catch (err) {
       console.error("Mark notification read failed:", err);
@@ -152,247 +180,246 @@ export default function StudentNavbar() {
     }
   };
 
-  const linkClass = ({ isActive }) =>
-    `text-sm font-medium transition ${
-      isActive ? "text-blue-600 font-semibold" : "text-slate-700 hover:text-blue-600"
+  const desktopLinkClass = ({ isActive }) =>
+    `rounded-full px-3 py-2 text-sm font-medium transition ${
+      isActive
+        ? "bg-blue-100 text-blue-700 shadow-sm"
+        : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+    }`;
+
+  const mobileLinkClass = ({ isActive }) =>
+    `block rounded-xl px-3 py-3 text-sm font-medium transition ${
+      isActive
+        ? "bg-blue-100 text-blue-700"
+        : "text-slate-700 hover:bg-slate-50 hover:text-blue-600"
     }`;
 
   const unreadCount = notifications.filter((item) => !item.read).length;
 
+  const notificationPanel = (
+    <>
+      {notifications.length > 0 && (
+        <div className="flex items-center justify-end border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/50 px-4 py-3">
+          <button
+            onClick={markAllAsRead}
+            className="text-xs font-medium text-blue-600 transition hover:text-blue-700"
+          >
+            Mark all as read
+          </button>
+        </div>
+      )}
+      {notifications.length === 0 ? (
+        <div className="p-6 text-center text-sm text-slate-500">
+          No notifications
+        </div>
+      ) : (
+        <div className="max-h-96 overflow-y-auto">
+          {notifications.map((notification) => (
+            <button
+              key={notification._id}
+              onClick={() => openNotificationPopup(notification)}
+              className={`w-full border-b border-slate-100 px-4 py-3 text-left text-sm transition ${
+                notification.read
+                  ? "bg-white text-slate-700 hover:bg-slate-50"
+                  : "border-blue-200/30 bg-blue-50/50 text-blue-900 hover:bg-blue-100/50"
+              }`}
+            >
+              {notification.text}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
   return (
-    <header className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-slate-200/50 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-screen-xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-slate-200/50 bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 shadow-sm">
+      <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div
           onClick={() => navigate("/student")}
-          className="flex items-center gap-2 cursor-pointer group"
+          className="flex cursor-pointer items-center gap-2 group"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
             <Zap size={18} className="text-white" />
           </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent group-hover:scale-105 transition">
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-lg font-bold text-transparent transition group-hover:scale-105">
             AI Careers
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <NavLink to="/student" end className={linkClass}>
+        <nav className="hidden items-center gap-3 md:flex">
+          <NavLink to="/student" end className={desktopLinkClass}>
             Home
           </NavLink>
 
           {token && (
             <>
-              <NavLink to="/student/jobs" className={linkClass}>
+              <NavLink to="/student/jobs" className={desktopLinkClass}>
                 Jobs
               </NavLink>
-
-              <NavLink to="/student/saved-jobs" className={linkClass}>
+              <NavLink to="/student/saved-jobs" className={desktopLinkClass}>
                 Saved
               </NavLink>
-
-              <NavLink to="/student/applications" className={linkClass}>
+              <NavLink to="/student/applications" className={desktopLinkClass}>
                 Applications
               </NavLink>
-
-              <NavLink to="/student/interviews" className={linkClass}>
+              <NavLink to="/student/interviews" className={desktopLinkClass}>
                 Interviews
               </NavLink>
-
-              <NavLink to="/student/analytics" className={linkClass}>
+              <NavLink to="/student/analytics" className={desktopLinkClass}>
                 Analytics
               </NavLink>
-
-              <NavLink to="/student/profile" className={linkClass}>
+              <NavLink to="/student/profile" className={desktopLinkClass}>
                 Profile
               </NavLink>
             </>
           )}
 
           {token && (
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative" ref={desktopDropdownRef}>
               <button
                 onClick={() => setOpenNotifications((prev) => !prev)}
-                className="relative p-2.5 text-slate-600 hover:text-blue-600 hover:bg-slate-200/30 rounded-lg transition"
+                className="relative rounded-lg p-2.5 text-slate-600 transition hover:bg-slate-200/30 hover:text-blue-600"
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 flex items-center justify-center">
+                  <span className="absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-red-600 to-red-700 px-1.5 py-0.5 text-[10px] font-bold text-white">
                     {unreadCount}
                   </span>
                 )}
               </button>
 
               {openNotifications && (
-                <div className="absolute right-0 mt-3 w-96 max-w-sm bg-white border border-slate-200/50 rounded-2xl shadow-xl overflow-hidden z-50">
-                  {notifications.length > 0 && (
-                    <div className="flex items-center justify-end px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/50">
-                      <button
-                        onClick={markAllAsRead}
-                        className="text-xs font-medium text-blue-600 hover:text-blue-700 transition"
-                      >
-                        Mark all as read
-                      </button>
-                    </div>
-                  )}
-                  {notifications.length === 0 ? (
-                    <div className="p-6 text-sm text-slate-500 text-center">
-                      No notifications
-                    </div>
-                  ) : (
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.map((notification) => (
-                        <button
-                          key={notification._id}
-                          onClick={() => openNotificationPopup(notification)}
-                          className={`w-full text-left px-4 py-3 text-sm border-b border-slate-100 transition ${
-                            notification.read ? "bg-white hover:bg-slate-50 text-slate-700" : "bg-blue-50/50 hover:bg-blue-100/50 text-blue-900 border-blue-200/30"
-                          }`}
-                        >
-                          {notification.text}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                <div className="absolute right-0 z-50 mt-3 w-96 max-w-sm overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-xl">
+                  {notificationPanel}
                 </div>
               )}
             </div>
           )}
 
           {!token ? (
-            <NavLink to="/student/login" className={linkClass}>
+            <NavLink to="/student/login" className={desktopLinkClass}>
               Login
             </NavLink>
           ) : (
             <button
               onClick={handleLogout}
-              className="text-sm font-medium text-red-600 hover:text-red-700 transition"
+              className="rounded-full px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700"
             >
               Logout
             </button>
           )}
         </nav>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden text-sm font-medium"
-        >
-          Menu
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <div className="md:hidden border-t bg-white border-slate-200/50 px-4 py-4 space-y-3">
-          <NavLink to="/student" end className="block text-sm">
-            Home
-          </NavLink>
-
+        <div className="flex items-center gap-2 md:hidden" ref={mobileDropdownRef}>
           {token && (
-            <>
-              <NavLink to="/student/jobs" className="block text-sm">
-                Jobs
-              </NavLink>
-
-              <NavLink to="/student/saved-jobs" className="block text-sm">
-                Saved Jobs
-              </NavLink>
-
-              <NavLink to="/student/applications" className="block text-sm">
-                Applications
-              </NavLink>
-
-              <NavLink to="/student/interviews" className="block text-sm">
-                Interviews
-              </NavLink>
-
-              <NavLink to="/student/analytics" className="block text-sm">
-                Analytics
-              </NavLink>
-
-              <NavLink to="/student/profile" className="block text-sm">
-                Profile
-              </NavLink>
-
+            <div className="relative">
               <button
                 onClick={() => {
                   setOpenNotifications((prev) => !prev);
                   fetchNotifications();
                 }}
-                className="block text-sm"
+                className="relative rounded-lg p-2.5 text-slate-600 transition hover:bg-slate-200/30 hover:text-blue-600"
+                aria-label="Open notifications"
               >
-                Notifications ({unreadCount})
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-red-600 to-red-700 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
 
               {openNotifications && (
-                <div className="border border-slate-200 rounded-lg overflow-hidden">
-                  {notifications.length > 0 && (
-                    <div className="flex items-center justify-end px-3 py-2 border-b bg-slate-50 border-slate-100">
-                      <button
-                        onClick={markAllAsRead}
-                        className="text-xs font-medium text-blue-600 hover:text-blue-700 transition"
-                      >
-                        Mark all as read
-                      </button>
-                    </div>
-                  )}
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-xs text-slate-500 text-center">No notifications</div>
-                  ) : (
-                    <div className="max-h-72 overflow-y-auto">
-                      {notifications.map((notification) => (
-                        <button
-                          key={notification._id}
-                          onClick={() => openNotificationPopup(notification)}
-                          className={`w-full text-left px-3 py-3 text-xs border-b transition ${
-                            notification.read ? "bg-white hover:bg-slate-50 text-slate-700" : "bg-blue-50/50 hover:bg-blue-100/50 text-blue-900 border-blue-200/30"
-                          }`}
-                        >
-                          {notification.text}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                <div className="absolute left-0 top-full z-50 mt-3 w-[90vw] max-w-sm overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-xl">
+                  {notificationPanel}
                 </div>
               )}
-            </>
+            </div>
           )}
 
-          {!token ? (
-            <NavLink to="/student/login" className="block text-sm">
-              Login
+          <button
+            onClick={() => setMobileOpen((prev) => !prev)}
+            className="rounded-lg p-2.5 text-slate-700 transition hover:bg-slate-100"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="border-t border-slate-200/50 bg-white px-4 py-4 md:hidden">
+          <div className="space-y-2">
+            <NavLink to="/student" end className={mobileLinkClass}>
+              Home
             </NavLink>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="block text-sm text-red-500"
-            >
-              Logout
-            </button>
-          )}
+
+            {token && (
+              <>
+                <NavLink to="/student/jobs" className={mobileLinkClass}>
+                  Jobs
+                </NavLink>
+                <NavLink to="/student/saved-jobs" className={mobileLinkClass}>
+                  Saved Jobs
+                </NavLink>
+                <NavLink to="/student/applications" className={mobileLinkClass}>
+                  Applications
+                </NavLink>
+                <NavLink to="/student/interviews" className={mobileLinkClass}>
+                  Interviews
+                </NavLink>
+                <NavLink to="/student/analytics" className={mobileLinkClass}>
+                  Analytics
+                </NavLink>
+                <NavLink to="/student/profile" className={mobileLinkClass}>
+                  Profile
+                </NavLink>
+              </>
+            )}
+
+            {!token ? (
+              <NavLink to="/student/login" className={mobileLinkClass}>
+                Login
+              </NavLink>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="block w-full rounded-xl px-3 py-3 text-left text-sm font-medium text-red-500 transition hover:bg-red-50"
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {selectedNotification && (
-        <div className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 space-y-6">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900">Notification</h3>
               <button
                 onClick={() => setSelectedNotification(null)}
-                className="text-slate-400 hover:text-slate-600 transition"
+                className="text-slate-400 transition hover:text-slate-600"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="text-sm space-y-4">
+            <div className="mt-6 space-y-4 text-sm">
               <p>
-                <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Status</span>
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200">
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Status
+                </span>
+                <span className="inline-flex items-center rounded-full border border-blue-200 bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-1.5 text-xs font-semibold text-blue-700">
                   {deriveNotificationStatus(selectedNotification)}
                 </span>
               </p>
+
               <div>
-                <p className="text-slate-700 leading-relaxed">{selectedNotification.text}</p>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="leading-relaxed text-slate-700">{selectedNotification.text}</p>
+                <p className="mt-2 text-xs text-slate-500">
                   {selectedNotification.createdAt
                     ? new Date(selectedNotification.createdAt).toLocaleString()
                     : ""}
@@ -400,10 +427,10 @@ export default function StudentNavbar() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2 border-t border-slate-100">
+            <div className="mt-6 flex gap-3 border-t border-slate-100 pt-4">
               <button
                 onClick={() => setSelectedNotification(null)}
-                className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition font-medium"
+                className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               >
                 Dismiss
               </button>
@@ -414,7 +441,7 @@ export default function StudentNavbar() {
                   setOpenNotifications(false);
                   navigate(targetRoute);
                 }}
-                className="flex-1 px-4 py-2.5 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium transition"
+                className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:from-blue-700 hover:to-indigo-700"
               >
                 Open
               </button>

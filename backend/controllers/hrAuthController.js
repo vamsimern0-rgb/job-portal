@@ -2,6 +2,7 @@ import Hr from "../models/Hr.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import generateToken from "../utils/generateToken.js";
+import { toPublicUploadPath } from "../utils/uploadPaths.js";
 
 const ensureActivityLog = (doc) => {
   if (!doc) return false;
@@ -301,7 +302,7 @@ export const uploadProfileImage = async (req, res) => {
       return res.status(404).json({ message: "HR not found" });
     }
 
-    hr.profileImage = req.file.path;
+    hr.profileImage = toPublicUploadPath(req.file);
     ensureActivityLog(hr);
     hr.activityLog.push({ action: "Profile Image Updated" });
 
@@ -332,7 +333,7 @@ export const uploadCompanyLogo = async (req, res) => {
       return res.status(404).json({ message: "HR not found" });
     }
 
-    hr.companyLogo = req.file.path;
+    hr.companyLogo = toPublicUploadPath(req.file);
     ensureActivityLog(hr);
     hr.activityLog.push({ action: "Company Logo Updated" });
 

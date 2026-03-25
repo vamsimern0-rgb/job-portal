@@ -1,10 +1,11 @@
 import multer from "multer";
 import path from "path";
+import { getUploadsDir } from "../utils/uploadPaths.js";
 
 /* ===== STORAGE CONFIG ===== */
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, getUploadsDir());
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);

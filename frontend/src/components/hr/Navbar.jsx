@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Bell, LogOut, Menu, X, Zap } from "lucide-react";
 import api from "../../api/axios";
 import socket from "../../socket";
 import { getAssetBaseUrl } from "../../config/runtime";
+import { toAssetUrl } from "../../utils/assets";
 
 const ASSET_BASE_URL = getAssetBaseUrl();
 
-const toAssetUrl = (value = "") =>
-  `${ASSET_BASE_URL.replace(/\/+$/, "")}/${String(value || "").replace(/^\/+/, "")}`;
-
 export default function Navbar({ setMobileOpen }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [profile, setProfile] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [openNotifications, setOpenNotifications] = useState(false);
@@ -19,7 +18,8 @@ export default function Navbar({ setMobileOpen }) {
   const [animateBell, setAnimateBell] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const dropdownRef = useRef(null);
+  const desktopDropdownRef = useRef(null);
+  const mobileDropdownRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -47,13 +47,20 @@ export default function Navbar({ setMobileOpen }) {
 
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      const clickedInsideDesktop = desktopDropdownRef.current?.contains(e.target);
+      const clickedInsideMobile = mobileDropdownRef.current?.contains(e.target);
+
+      if (!clickedInsideDesktop && !clickedInsideMobile) {
         setOpenNotifications(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    setOpenNotifications(false);
+  }, [location.pathname]);
 
   const fetchProfile = async () => {
     try {
@@ -166,17 +173,64 @@ export default function Navbar({ setMobileOpen }) {
 
   const profileImage =
     profile?.profileImage
-      ? toAssetUrl(profile.profileImage)
+      ? toAssetUrl(ASSET_BASE_URL, profile.profileImage)
       : "https://ui-avatars.com/api/?name=HR&background=16a34a&color=fff";
 
   return (
-    <header className="fixed md:static top-0 left-0 right-0 w-full z-40 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 backdrop-blur-sm h-16 flex items-center justify-between px-4 md:px-8 shadow-lg shadow-slate-900/50">
+    <header className="sticky top-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 shadow-lg shadow-slate-900/50 backdrop-blur-sm md:px-8">
 
       {/* LEFT */}
       <div className="flex items-center gap-4 min-w-0">
-        <button className="md:hidden shrink-0 text-slate-400 hover:text-slate-200 transition" onClick={() => setMobileOpen(true)}>
-          <Menu size={22} />
-        </button>
+        <div className="flex items-center gap-2 md:hidden" ref={mobileDropdownRef}>
+          <button
+            onClick={() => setOpenNotifications((prev) => !prev)}
+            className={`relative rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-800/40 hover:text-emerald-400 ${
+              animateBell ? "animate-bounce" : ""
+            }`}
+            aria-label="Open notifications"
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 min-w-5 rounded-full bg-gradient-to-r from-red-600 to-red-700 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            className="shrink-0 rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-800/40 hover:text-slate-200"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
+
+          {openNotifications && (
+            <div className="absolute left-0 top-full mt-3 w-[90vw] max-w-sm overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/95 shadow-xl">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center text-sm text-slate-400">
+                  No notifications
+                </div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.map((note) => (
+                    <div
+                      key={note._id}
+                      onClick={() => openNotificationPopup(note)}
+                      className={`cursor-pointer border-b border-slate-700/30 px-4 py-3 text-sm transition ${
+                        note.read
+                          ? "bg-slate-800/40 text-slate-400 hover:bg-slate-700/40"
+                          : "border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50"
+                      }`}
+                    >
+                      {note.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -197,7 +251,7 @@ export default function Navbar({ setMobileOpen }) {
           </span>
         )}
 
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative hidden md:block" ref={desktopDropdownRef}>
           <button
             onClick={() => setOpenNotifications(!openNotifications)}
             className={`relative p-2.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/40 transition ${

@@ -19,6 +19,7 @@ import studentRoutes from "./routes/studentRoutes.js";
 import interviewReminderScheduler from "./services/interviewReminderScheduler.js";
 import Hr from "./models/Hr.js";
 import Student from "./models/Student.js";
+import { getUploadsDir } from "./utils/uploadPaths.js";
 
 const DEFAULT_DEV_ORIGINS = [
   "http://localhost:5173",
@@ -126,7 +127,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(getUploadsDir()));
 
 /* ================= ROUTES ================= */
 

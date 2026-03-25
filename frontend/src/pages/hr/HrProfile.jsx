@@ -3,11 +3,9 @@ import { Building2, Mail, Phone, MapPin, Globe, Users, Lock, Edit2, Check, X } f
 import api from "../../api/axios";
 import { useToast } from "../../components/ui/ToastProvider";
 import { getAssetBaseUrl } from "../../config/runtime";
+import { toAssetUrl } from "../../utils/assets";
 
 const ASSET_BASE_URL = getAssetBaseUrl();
-
-const toAssetUrl = (value = "") =>
-  `${ASSET_BASE_URL.replace(/\/+$/, "")}/${String(value || "").replace(/^\/+/, "")}`;
 
 export default function HrProfile() {
   const toast = useToast();
@@ -121,7 +119,7 @@ export default function HrProfile() {
   const logoSrc =
     logoPreview ||
     (profile.companyLogo
-      ? toAssetUrl(profile.companyLogo)
+      ? toAssetUrl(ASSET_BASE_URL, profile.companyLogo)
       : "https://dummyimage.com/200x200/059669/ffffff&text=Logo");
 
   return (

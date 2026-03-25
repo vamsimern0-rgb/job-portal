@@ -2,6 +2,7 @@ import Student from "../models/Student.js";
 import StudentSkillVector from "../models/StudentSkillVector.js";
 import skillTokenizer from "../ai/skillTokenizer.js";
 import * as tfidfEngine from "../ai/tfidfEngine.js";
+import { toPublicUploadPath } from "../utils/uploadPaths.js";
 
 const normalizeString = (value = "") => String(value ?? "").trim();
 
@@ -176,7 +177,7 @@ export const uploadProfileImage = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    student.profileImage = req.file.path;
+    student.profileImage = toPublicUploadPath(req.file);
     student.profileCompletion = calculateProfileCompletion(student);
     await student.save();
 

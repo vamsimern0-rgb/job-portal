@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../components/ui/ToastProvider";
 import { getAssetBaseUrl } from "../../config/runtime";
+import { toAssetUrl } from "../../utils/assets";
 
 const API_ASSET_BASE = getAssetBaseUrl();
 
@@ -265,7 +266,7 @@ export default function StudentProfile() {
 
   const profileImageSrc = useMemo(() => {
     if (student?.profileImage) {
-      return `${API_ASSET_BASE}${student.profileImage}`;
+      return toAssetUrl(API_ASSET_BASE, student.profileImage);
     }
     return "";
   }, [student?.profileImage]);
