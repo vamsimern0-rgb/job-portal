@@ -59,6 +59,7 @@ export default function HrLayout({ children }) {
 
         <main
           ref={mainRef}
+          data-route-scroll-container="true"
           className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-8 pt-20 sm:px-6 md:pt-6"
         >
           <div className="mx-auto w-full max-w-[1600px]">

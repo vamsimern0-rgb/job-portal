@@ -1,5 +1,5 @@
-import { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Suspense, lazy, useLayoutEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 /* ================= PUBLIC ================= */
 const Landing = lazy(() => import("./pages/Landing"));
@@ -62,6 +62,7 @@ function HrEntryRedirect() {
 function App() {
   return (
     <BrowserRouter>
+      <RouteScrollReset />
       <Suspense fallback={<RouteShellLoader />}>
         <Routes>
 
@@ -120,6 +121,34 @@ function App() {
       </Suspense>
     </BrowserRouter>
   );
+}
+
+function RouteScrollReset() {
+  const location = useLocation();
+
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+      document
+        .querySelectorAll("[data-route-scroll-container='true']")
+        .forEach((element) => {
+          element.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        });
+    };
+
+    resetScroll();
+
+    const frame = window.requestAnimationFrame(resetScroll);
+    const timeout = window.setTimeout(resetScroll, 60);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
+  }, [location.pathname, location.search]);
+
+  return null;
 }
 
 function RouteShellLoader() {
