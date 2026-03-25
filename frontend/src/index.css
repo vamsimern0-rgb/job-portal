@@ -53,3 +53,64 @@
   background-size: 68px 68px;
 }
 
+.sidebar-shell {
+  overflow-y: hidden;
+}
+
+.sidebar-nav {
+  overflow: hidden;
+}
+
+@media (max-height: 900px) {
+  .sidebar-header {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .sidebar-nav {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .sidebar-nav-list {
+    gap: 0.35rem;
+  }
+
+  .sidebar-link {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .sidebar-footer {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+@media (max-height: 780px) {
+  .sidebar-header {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .sidebar-nav {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .sidebar-nav-list {
+    gap: 0.25rem;
+  }
+
+  .sidebar-link {
+    border-radius: 0.85rem;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    font-size: 0.875rem;
+  }
+
+  .sidebar-footer {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+}

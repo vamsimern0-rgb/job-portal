@@ -8,7 +8,7 @@ import { toAssetUrl } from "../../utils/assets";
 
 const ASSET_BASE_URL = getAssetBaseUrl();
 
-export default function Navbar({ setMobileOpen }) {
+export default function Navbar({ setMobileOpen, scrollContainerRef }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState(null);
@@ -17,10 +17,12 @@ export default function Navbar({ setMobileOpen }) {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [animateBell, setAnimateBell] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isMobileNavVisible, setIsMobileNavVisible] = useState(true);
 
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+  const mobileMenuOpenedAtRef = useRef(0);
 
   useEffect(() => {
     const loadHeaderData = async () => {
@@ -60,7 +62,46 @@ export default function Navbar({ setMobileOpen }) {
 
   useEffect(() => {
     setOpenNotifications(false);
+    setIsMobileNavVisible(true);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const scrollElement = scrollContainerRef?.current;
+    if (!scrollElement) return;
+
+    let lastScrollTop = scrollElement.scrollTop;
+    let showTimer = null;
+
+    const handleScroll = () => {
+      const currentScrollTop = scrollElement.scrollTop;
+      const scrollingDown = currentScrollTop > lastScrollTop;
+      const isMobileViewport = window.innerWidth < 768;
+
+      if (isMobileViewport) {
+        setIsMobileNavVisible(!scrollingDown || currentScrollTop < 24);
+
+        if (Date.now() - mobileMenuOpenedAtRef.current > 250) {
+          setMobileOpen(false);
+        }
+      } else {
+        setIsMobileNavVisible(true);
+      }
+
+      window.clearTimeout(showTimer);
+      showTimer = window.setTimeout(() => {
+        setIsMobileNavVisible(true);
+      }, 140);
+
+      lastScrollTop = currentScrollTop;
+    };
+
+    scrollElement.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      scrollElement.removeEventListener("scroll", handleScroll);
+      window.clearTimeout(showTimer);
+    };
+  }, [scrollContainerRef, setMobileOpen]);
 
   const fetchProfile = async () => {
     try {
@@ -171,13 +212,22 @@ export default function Navbar({ setMobileOpen }) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const handleOpenMobileMenu = () => {
+    mobileMenuOpenedAtRef.current = Date.now();
+    setMobileOpen(true);
+  };
+
   const profileImage =
     profile?.profileImage
       ? toAssetUrl(ASSET_BASE_URL, profile.profileImage)
       : "https://ui-avatars.com/api/?name=HR&background=16a34a&color=fff";
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 shadow-lg shadow-slate-900/50 backdrop-blur-sm md:px-8">
+    <header
+      className={`sticky top-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 shadow-lg shadow-slate-900/50 backdrop-blur-sm transition-transform duration-200 md:px-8 ${
+        isMobileNavVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0"
+      }`}
+    >
 
       {/* LEFT */}
       <div className="flex items-center gap-4 min-w-0">
@@ -199,7 +249,7 @@ export default function Navbar({ setMobileOpen }) {
 
           <button
             className="shrink-0 rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-800/40 hover:text-slate-200"
-            onClick={() => setMobileOpen(true)}
+            onClick={handleOpenMobileMenu}
             aria-label="Open menu"
           >
             <Menu size={22} />

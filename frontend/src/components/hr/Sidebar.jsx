@@ -48,7 +48,7 @@ export default function Sidebar({
   };
 
   const linkClass =
-    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200";
+    "sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200";
 
   const isRouteActive = (patterns = []) =>
     patterns.some(
@@ -93,14 +93,14 @@ export default function Sidebar({
 
       <aside
         className={`
-          fixed left-0 top-0 z-50 flex h-dvh flex-col overflow-y-auto border-r border-slate-700/50
+          sidebar-shell fixed left-0 top-0 z-50 flex h-dvh flex-col overflow-hidden border-r border-slate-700/50
           bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-sm
           transition-all duration-300 ease-in-out md:sticky md:h-screen
           ${collapsed ? "w-20" : "w-64"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <div className="flex items-center justify-between border-b border-slate-700/50 px-6 py-5 shrink-0">
+        <div className="sidebar-header flex items-center justify-between border-b border-slate-700/50 px-6 py-5 shrink-0">
           {!collapsed && (
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
@@ -129,20 +129,22 @@ export default function Sidebar({
           </button>
         </div>
 
-        <div className="flex-1 space-y-2 px-4 py-6">
-          {renderLink("/hr/dashboard", "Dashboard", LayoutDashboard)}
-          {renderLink("/hr/create-job", "Create Job", Briefcase, ["Founder", "HR Manager"])}
-          {renderLink("/hr/jobs", "Jobs", Briefcase, [], ["/hr/jobs"])}
-          {renderLink("/hr/candidates", "Candidates", Users, [], ["/hr/candidates"])}
-          {renderLink("/hr/ats", "ATS", FileSearch, [], ["/hr/ats"])}
-          {renderLink("/hr/pipeline", "Pipeline", GitBranch, [], ["/hr/pipeline"])}
-          {renderLink("/hr/calendar", "Interviews", Calendar, [], ["/hr/calendar", "/hr/interviews"])}
-          {renderLink("/hr/timeline", "Activity Timeline", Activity, [], ["/hr/timeline", "/hr/activity"])}
-          {renderLink("/hr/profile", "Profile", User, [], ["/hr/profile"])}
-          {renderLink("/hr/team", "Team Management", UserPlus, ["Founder", "HR Manager"], ["/hr/team"])}
+        <div className="sidebar-nav min-h-0 flex-1 px-4 py-6">
+          <div className="sidebar-nav-list space-y-2">
+            {renderLink("/hr/dashboard", "Dashboard", LayoutDashboard)}
+            {renderLink("/hr/create-job", "Create Job", Briefcase, ["Founder", "HR Manager"])}
+            {renderLink("/hr/jobs", "Jobs", Briefcase, [], ["/hr/jobs"])}
+            {renderLink("/hr/candidates", "Candidates", Users, [], ["/hr/candidates"])}
+            {renderLink("/hr/ats", "ATS", FileSearch, [], ["/hr/ats"])}
+            {renderLink("/hr/pipeline", "Pipeline", GitBranch, [], ["/hr/pipeline"])}
+            {renderLink("/hr/calendar", "Interviews", Calendar, [], ["/hr/calendar", "/hr/interviews"])}
+            {renderLink("/hr/timeline", "Activity Timeline", Activity, [], ["/hr/timeline", "/hr/activity"])}
+            {renderLink("/hr/profile", "Profile", User, [], ["/hr/profile"])}
+            {renderLink("/hr/team", "Team Management", UserPlus, ["Founder", "HR Manager"], ["/hr/team"])}
+          </div>
         </div>
 
-        <div className="shrink-0 border-t border-slate-700/50 p-4">
+        <div className="sidebar-footer shrink-0 border-t border-slate-700/50 p-4">
           <button
             onClick={logout}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-red-600/80 to-red-700/80 py-2.5 font-semibold text-white shadow-lg shadow-red-900/30 transition hover:from-red-600 hover:to-red-700"

@@ -55,7 +55,7 @@ export default function HrLayout({ children }) {
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Navbar setMobileOpen={setMobileOpen} />
+        <Navbar setMobileOpen={setMobileOpen} scrollContainerRef={mainRef} />
 
         <main
           ref={mainRef}

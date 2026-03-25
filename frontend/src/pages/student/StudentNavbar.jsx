@@ -16,6 +16,7 @@ export default function StudentNavbar() {
   const [studentId, setStudentId] = useState("");
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
+  const mobileMenuOpenedAtRef = useRef(0);
 
   const token = localStorage.getItem("studentToken");
 
@@ -94,6 +95,10 @@ export default function StudentNavbar() {
     };
 
     const handleScroll = () => {
+      if (Date.now() - mobileMenuOpenedAtRef.current < 250) {
+        return;
+      }
+
       setMobileOpen(false);
     };
 
@@ -195,6 +200,14 @@ export default function StudentNavbar() {
     }`;
 
   const unreadCount = notifications.filter((item) => !item.read).length;
+
+  const toggleMobileMenu = () => {
+    if (!mobileOpen) {
+      mobileMenuOpenedAtRef.current = Date.now();
+    }
+
+    setMobileOpen((prev) => !prev);
+  };
 
   const notificationPanel = (
     <>
@@ -339,7 +352,7 @@ export default function StudentNavbar() {
           )}
 
           <button
-            onClick={() => setMobileOpen((prev) => !prev)}
+            onClick={toggleMobileMenu}
             className="rounded-lg p-2.5 text-slate-700 transition hover:bg-slate-100"
             aria-label="Toggle menu"
           >
