@@ -59,7 +59,7 @@ export default function HrLayout({ children }) {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-8 pt-4 sm:px-6 md:pt-6"
+          className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-8 pt-20 sm:px-6 md:pt-6"
         >
           <div className="mx-auto w-full max-w-[1600px]">
             {children}

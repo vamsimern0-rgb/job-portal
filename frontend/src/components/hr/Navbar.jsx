@@ -224,7 +224,7 @@ export default function Navbar({ setMobileOpen, scrollContainerRef }) {
 
   return (
     <header
-      className={`sticky top-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 shadow-lg shadow-slate-900/50 backdrop-blur-sm transition-transform duration-200 md:px-8 ${
+      className={`fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 shadow-lg shadow-slate-900/50 backdrop-blur-sm transition-transform duration-200 md:sticky md:px-8 ${
         isMobileNavVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0"
       }`}
     >
